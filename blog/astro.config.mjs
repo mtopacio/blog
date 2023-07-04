@@ -5,6 +5,7 @@ import tailwind from "@astrojs/tailwind";
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind()],
-  outDir: '../docs'
-  
+  outDir: '../docs',
+  site: 'https://mtopacio.github.io',
+  base: '/blog'
 });
