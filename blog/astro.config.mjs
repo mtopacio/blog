@@ -6,5 +6,6 @@ import tailwind from "@astrojs/tailwind";
 export default defineConfig({
   integrations: [tailwind()],
   outDir: '../docs',
-  site: 'https://mtopacio.github.io'
+  site: 'https://mtopacio.github.io',
+  base: '/blog'
 });
