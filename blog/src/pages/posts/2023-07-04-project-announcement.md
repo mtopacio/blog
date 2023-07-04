@@ -4,7 +4,7 @@ title: Project Announcement
 description: ""
 date: 2023-07-04T08:56:55.425Z
 preview: ""
-draft: true
+draft: false
 tags: ["Astro", "Svelte"]
 categories: []
 image:
