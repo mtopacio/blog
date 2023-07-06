@@ -8,6 +8,6 @@ import 'path-to-regexp';
 import 'mime';
 import 'string-width';
 
-const page = () => import('./pages/2023-07-04-project-announcement.md.6d34f753.mjs').then(n => n._);
+const page = () => import('./pages/index.astro.0fe611dc.mjs');
 
 export { page };

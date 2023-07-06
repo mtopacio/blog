@@ -1,13 +1,13 @@
 /* empty css                           */import { c as createAstro, a as createComponent, r as renderTemplate, d as renderComponent, m as maybeRenderHead } from '../astro.bc1e62c4.mjs';
 import 'html-escaper';
-import { $ as $$DefaultLayout } from './2023-07-04-project-announcement.md.6d34f753.mjs';
+import { $ as $$DefaultLayout } from './2023-07-04-project-announcement.md.a54c33d0.mjs';
 import 'cookie';
 import 'kleur/colors';
 import 'path-to-regexp';
 import 'mime';
 import 'string-width';
 
-const $$Astro = createAstro("https://mtopacio.github.io");
+const $$Astro = createAstro();
 const $$Index = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Index;
@@ -23,6 +23,6 @@ const $$Index = createComponent(async ($$result, $$props, $$slots) => {
 }, "/home/mtopacio/Git/blog/blog/src/pages/index.astro");
 
 const $$file = "/home/mtopacio/Git/blog/blog/src/pages/index.astro";
-const $$url = "/blog";
+const $$url = "";
 
 export { $$Index as default, $$file as file, $$url as url };
