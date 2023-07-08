@@ -1,0 +1,18 @@
+---
+import { getCollection, CollectionEntry } from 'astro:content';
+
+// solution deviates from the docs due to `output:"sever"` in config
+// https://github.com/withastro/astro/issues/6012
+const posts = await getCollection('posts');
+type Props = CollectionEntry<'posts'>;
+
+const { slug } = Astro.params;
+const post = posts.find(post => post.slug === slug);
+if (!post) return Astro.redirect("/404");
+const { Content } = await post.render();
+
+---
+ 
+<!-- layout specified by PostLayout.astro -->
+<Content />
+

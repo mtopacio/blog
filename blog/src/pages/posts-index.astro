@@ -1,0 +1,29 @@
+---
+import DefaultLayout from '../layouts/DefaultLayout.astro' 
+import { getCollection } from 'astro:content';
+// const allPosts = await Astro.glob('../pages/posts/*.md');
+const allBlogPosts = await getCollection('posts');
+// console.log(allBlogPosts);
+---
+
+<DefaultLayout title="Posts">
+    
+    <div class="flex flex-row">
+       
+        <div class="flex flex-col w-full h-full text-lg p-5">
+            <div class="flex flex-row justify-center font-semibold">Posts</div>
+            <!-- { allPosts.map((post) => 
+                <div class="flex flex-row justify-center gap-x-2">{post.frontmatter.date.split('T')[0]}: <a href={post.url}>{post.frontmatter.title}</a></div> 
+            ) } -->
+
+            { 
+                allBlogPosts.map(post => 
+                <div class="flex flex-row justify-center gap-x-2">{ post.data.date.toISOString().split("T")[0] }: 
+                    <a href={ post.collection + "/" + post.slug }>{ post.data.title }</a>
+                </div>)
+            }
+        </div>
+       
+    </div>
+   
+</DefaultLayout>

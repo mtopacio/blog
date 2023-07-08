@@ -1,17 +1,219 @@
 ---
 import DefaultLayout from '../layouts/DefaultLayout.astro'
+import { getCollection } from 'astro:content';
+
+// number of posts
+const allPosts = await getCollection('posts');
+const allAnnouncements = await getCollection('announcements');
+
 ---
 
 <!-- Landing Page -->
 
-<DefaultLayout title="Mark Topacio">
-	<div>
-		<div class="flex flex-row h-full w-full justify-center pt-10">
-			Hi! My name is Mark, and I work as a Process Engineer at Illumina focused on manufacturing.
+<DefaultLayout title="Mark Topacio | Welcome!">
+	<div class="flex flex-col w-full justify-center">
+		<div class="flex flex-row justify-center">
+			<div class="w-2/3 p-4 m-4 p-4 rounded-lg shadow-xl text-xl font-thin justify-center text-center bg-slate-400">
+				Hi, my name is Mark and I work as a Process Engineer for Illumina. This is my site showcasing some of the tools I use applied to some other sideprojects.
+			</div>			
 		</div>
-		<div id="background-plot"></div>
+		<div class="flex flex-row">
+			<div class="w-1/2 m-4 py-4 px-2 h-60" id="treemap-plot"></div>
+			<div class="w-1/2 m-4">
+				<div>Posts/Tags</div>
+				<div class="bottom-6 right-8 text-6xl font-extrabold">{allPosts.length}</div>
+			</div>
+		</div>
+		<div class="flex flex-row h-60 px-2">
+			<div class="w-1/4  m-2 p-4" id="language-plot"></div>
+			<div class="w-1/4  m-2 p-4" id="frontend-plot"></div>
+			<div class="w-1/4  m-2 p-4" id="backend-plot"></div>
+			<div class="w-1/4  m-2 p-4" id="other-plot"></div>
+		</div>
+		<div class="flex flex-row gap-x-2 justify-around p-4">
+			<div class="w-1/2 bg-slate-400 rounded-xl p-2 relative">
+				<div>Announcements</div>
+				<div class="absolute bottom-6 right-8 text-6xl font-extrabold">{allAnnouncements.length}</div>
+			</div>
+			<div class="w-1/2 bg-slate-400 rounded-xl p-2 relative">
+				<div>Posts</div>
+				<div class="absolute bottom-6 right-8 text-6xl font-extrabold">{allPosts.length}</div>
+			</div>
+		</div>
+		<div class="flex flex-row">
+		
+		</div>
+		
 	</div>
-	
-</DefaultLayout>
 
+</DefaultLayout>
+<script>
+	import * as echarts from 'echarts';
+
+	const plotNames = ['language', 'frontend', 'backend', 'other', 'treemap'] 
+	let plots = {};
+
+	plotNames.forEach(name => {
+		let element = document.getElementById(`${name}-plot`)
+		plots[name] = {
+			element: element,
+			chart: echarts.init(element)
+		}
+	})
+
+	const data = {
+		language: {
+			vars: ['Python', 'SQL', 'Bash', 'Javascript', 'Java'],
+			vals: [5, 5, 4, 4, 2]
+		},
+		frontend: {
+			vars: [ 'Echarts.js', 'TailwindCSS', 'Dash', 'Streamlit','Astro', 'Alpine.js', 'Grid.js', 'Lodash.js', 'Svelte'],
+			vals: [4, 4, 4, 4, 3, 3, 3, 3, 1]
+		},
+		backend: {
+			vars: ['PySpark', 'Airflow', 'Kafka', 'Postgres', 'Flink*', 'Strawberry', 'Flask', 'FastAPI'],
+			vals: [5, 5, 4, 4, 3, 3, 3, 3].map(x => x + 4)
+		},
+		other: {
+			vars: ['Cloudera', 'Posit', 'Github', 'AWS', 'Jira','Asana'],
+			vals: [4, 4, 3, 3, 3, 1]
+		}
+	}
+
+	let treeData = [];
+	plotNames.forEach(name => {
+		if (name === 'frontend' || name === 'backend') {
+			let tmpData = data[name]
+			treeData.push({
+				name: name.charAt(0).toLocaleUpperCase() + name.slice(1),
+				value: tmpData.vals.reduce((partSum, a) => partSum + a, 0),
+				children: tmpData.vars.map(x => {
+					let i = tmpData.vars.indexOf(x);
+
+					return {
+						name: x,
+						value: tmpData.vals[i],
+						itemStyle: {
+							color: name !== 'frontend' ? 'rgb(147,197,253)' : 'rgb(110,231,183)' 
+						}
+						
+					}
+				})
+			})
+		}
+	})
+
+	plotNames.forEach(name => {
+		
+		let tmpOption = {};
+
+		if (name == 'treemap') {
+
+			tmpOption = {
+				title: { 
+					text: 'Background',
+					textStyle: {
+						color: '#ffffff'
+					}
+				},
+				series: [
+					{
+						type: 'treemap',
+						name: 'Background',
+						data: treeData,
+						label: {
+							show: true
+						},
+						itemStyle: {
+							borderColor: 'rgb(15,23,42)',
+							borderWidth: 0.5,
+							
+						}
+					}
+				]
+			};
+
+
+		} else {
+
+			// default
+			let color = new echarts.graphic.LinearGradient(0,0,1,0, [
+				{ offset: 0, color: 'rgb(253,186,116)' },
+				{ offset: 0.5, color: 'rgb(254,215,170)' },
+				{ offset: 1, color: 'rgb(255,247,237)' }
+			]);
+
+			if (name === 'frontend') {
+				color = new echarts.graphic.LinearGradient(0,0,1,0, [
+					{ offset: 0, color: 'rgb(253,186,116)' },
+					{ offset: 1, color: 'rgb(167,243,208)' }
+				])
+			} else if (name === 'backend') {
+				color = new echarts.graphic.LinearGradient(0,0,1,0, [
+					{ offset: 0, color: 'rgb(253,186,116)' },
+					{ offset: 1, color: 'rgb(191,219,254)' }
+				])
+			}
+			
+			
+			tmpOption = {
+				title: { 
+					text: name.charAt(0).toLocaleUpperCase() + name.slice(1),
+					textStyle: {
+						color: '#ffffff'
+					}
+				},
+				tooltip: {
+					show: false
+					// trigger: 'axis',
+					// axisPointer: {
+					// 	type: 'shadow'
+					// }
+				},
+				xAxis: {
+					type: 'value',
+					splitLine: {
+						show: false
+					}
+				},
+				yAxis: {
+					splitLine: {
+						show: false
+					},
+					data: data[name].vars,
+					inverse: true,
+					axisLabel: {
+						textStyle: {
+							color: '#ffffff'
+						}
+					}
+				},
+				series: [
+					{
+						name: 'Experience',
+						type: 'bar',
+						data: data[name].vals,
+						itemStyle: {
+							color: color,
+							borderRadius: 10
+						},
+						
+					}
+				],
+				grid: {
+					left: 90,
+					right: 10,
+					bottom: 0,
+					top: 30
+				}
+			};
+		}
+
+		plots[name].chart.setOption(tmpOption);
+	})
+	
+
+
+
+</script>
 

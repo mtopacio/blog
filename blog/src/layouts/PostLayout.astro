@@ -1,13 +1,30 @@
 ---
+import FooterComponent from '../components/FooterComponent.astro'
 import DefaultLayout from './DefaultLayout.astro'
-
+const {frontmatter} = Astro.props;
+const postDate = frontmatter.date.split("T")[0]
+console.log(frontmatter)
 ---
 
 <DefaultLayout>
 
-<div class="flex flex-col h-full w-full py-20 px-96 text-lg">
-  <slot />
-</div>
+  <img src={frontmatter.img.url} alt="">
+  <sub class="flex flex-row justify-center pt-2 pb-4">
+    <a href={frontmatter.img.captionLink}>{frontmatter.img.caption}</a>
+  </sub>
 
+  <div class="flex flex-col h-full w-full py-20 px-80 text-lg">
+    <div class="text-4xl font-bold">{frontmatter.title}</div>
+    <div class="text-sm font-thin pb-4">Written on {postDate}</div>
+    <div class="text-white 
+      prose-a:text-orange-300 prose-a:font-semibold
+        prose-h1:font-bold prose-h1:text-4xl
+        prose-h2:font-bold prose-h2:text-2xl prose-h2:pb-2 prose-h2:pt-4 
+        prose-img:shadow-xl
+        prose-hr:pt-10
+        prose-p:py-3">
+      <slot />
+    </div>
+  </div>
 
 </DefaultLayout>

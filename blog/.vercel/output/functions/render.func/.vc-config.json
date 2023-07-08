@@ -1,5 +1,5 @@
 {
-	"runtime": "nodejs18.x",
+	"runtime": "nodejs19.x",
 	"handler": "dist/entry.mjs",
 	"launcherType": "Nodejs"
 }
