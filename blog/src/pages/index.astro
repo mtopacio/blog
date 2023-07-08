@@ -1,11 +1,61 @@
 ---
+import { attachToResponse } from 'astro/dist/core/cookies';
 import DefaultLayout from '../layouts/DefaultLayout.astro'
 import { getCollection } from 'astro:content';
 
 // number of posts
-const allPosts = await getCollection('posts');
+const allPosts = (await getCollection('posts')).filter(post => !post.data.draft);
 const allAnnouncements = await getCollection('announcements');
+const plotNames = ['language', 'frontend', 'backend', 'other', 'tree', 'pie']
 
+let allTags = {};
+allPosts.forEach(post => {
+	post.data.tags.forEach(tag => {
+		if (allTags[tag]) {
+			allTags[tag] += 1;
+		} else {
+			allTags[tag] = 1;
+		}
+	})
+})
+let allDatesArr = allPosts.map(p => p.data.date.toISOString().split('T')[0])
+let allDates = {};
+allDatesArr.forEach(d => {
+	if (allDates[d]) {
+		allDates[d] += 1;
+	} else {
+		allDates[d] = 1;
+	}
+})
+
+// key for every day
+const day = 60*60*24*1000;
+const now = new Date();
+const currDate = new Date(`${now.getFullYear()}-${now.getDay()+1}-${now.getDate()}`)
+
+let dateArr = {};
+for (let i=0; i<=30; i++) {
+	let tmpDate = (new Date(currDate - i*day)).toISOString().split('T')[0];
+	dateArr[tmpDate] = 0;
+}
+
+let postDates = {};
+Object.keys(dateArr).forEach(el => {
+	if (allDates[el]) {
+		postDates[el] = allDates[el];
+	} else {
+		postDates[el] = 0;
+	}
+})
+
+
+// convert to data
+const tagData = JSON.stringify(Object.keys(allTags).map(tag => {
+	return {
+		name: tag,
+		value: allTags[tag]
+	}
+}))
 ---
 
 <!-- Landing Page -->
@@ -13,15 +63,24 @@ const allAnnouncements = await getCollection('announcements');
 <DefaultLayout title="Mark Topacio | Welcome!">
 	<div class="flex flex-col w-full justify-center">
 		<div class="flex flex-row justify-center">
-			<div class="w-2/3 p-4 m-4 p-4 rounded-lg shadow-xl text-xl font-thin justify-center text-center bg-slate-400">
-				Hi, my name is Mark and I work as a Process Engineer for Illumina. This is my site showcasing some of the tools I use applied to some other sideprojects.
+			<div class="w-2/3 p-4 m-4 text-xl font-thin justify-center text-center">
+				Hi, I work as a Process Engineer for Illumina. This is my site showcasing some of the tools I use as applied to some other sideprojects.
 			</div>			
 		</div>
 		<div class="flex flex-row">
-			<div class="w-1/2 m-4 py-4 px-2 h-60" id="treemap-plot"></div>
-			<div class="w-1/2 m-4">
-				<div>Posts/Tags</div>
-				<div class="bottom-6 right-8 text-6xl font-extrabold">{allPosts.length}</div>
+			<div class="w-1/3 m-4 py-4 px-2 h-60" id="treemap-plot"></div>
+			<div class="w-1/3 m-4">
+				<div id="pie-plot" class="h-60 py-4"></div>
+			</div>
+			<div class="w-1/3 flex flex-col gap-y-2 h-60 justify-around p-4">
+				<div class="rounded-xl p-2 h-full relative">
+					<div id="postDates" class="hidden">{ JSON.stringify(postDates) }</div>
+					<div id="posts-plot" class="h-full pt-2">test</div>
+					<div class="absolute top-6 right-14 text-6xl font-extrabold flex flex-row">
+						<div class="text-sm absolute left-8 bottom-2">Total</div>
+						{allPosts.length}
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="flex flex-row h-60 px-2">
@@ -30,27 +89,37 @@ const allAnnouncements = await getCollection('announcements');
 			<div class="w-1/4  m-2 p-4" id="backend-plot"></div>
 			<div class="w-1/4  m-2 p-4" id="other-plot"></div>
 		</div>
-		<div class="flex flex-row gap-x-2 justify-around p-4">
-			<div class="w-1/2 bg-slate-400 rounded-xl p-2 relative">
-				<div>Announcements</div>
-				<div class="absolute bottom-6 right-8 text-6xl font-extrabold">{allAnnouncements.length}</div>
-			</div>
-			<div class="w-1/2 bg-slate-400 rounded-xl p-2 relative">
-				<div>Posts</div>
-				<div class="absolute bottom-6 right-8 text-6xl font-extrabold">{allPosts.length}</div>
-			</div>
-		</div>
-		<div class="flex flex-row">
-		
-		</div>
-		
 	</div>
+	
+	<div class="flex flex-row justify-center text-2xl font-bold pt-10 pb-2">Posts</div>
+	<div class="flex flex-row justify-evenly">
+		{ allPosts.slice(-3).map((post) =>
+			<div class="w-1/4 bg-slate-100 text-black h-32 flex flex-row rounded-md shadow-2xl overflow-hidden hover:scale-105 transition duration-200"> 
+				<img class="object-center w-1/2" src={"/images/" + post.data.img.url} alt="">
+				<div class="flex flex-col p-2 justify-between">
+					<div class="flex flex-col">
+						<a href={ post.collection + "/" + post.slug } class="font-bold">{post.data.title}</a>
+						<div class="text-xs">{post.data.date.toISOString().split('T')[0]}</div>
+					</div>
+					<div class="text-xs">
+					Tags: {post.data.tags.join(', ')}
+					</div>
+					
+				</div>
+				
+			</div>)
+		}
+	</div>
+
+	<!-- passing vars to script when building -->
+	<div id="tagData" class="hidden">{ tagData }</div>
 
 </DefaultLayout>
 <script>
 	import * as echarts from 'echarts';
 
-	const plotNames = ['language', 'frontend', 'backend', 'other', 'treemap'] 
+	const tagData = JSON.parse(document.getElementById('tagData').innerText);
+	const plotNames = ['language', 'frontend', 'backend', 'other', 'treemap', 'pie', 'posts']
 	let plots = {};
 
 	plotNames.forEach(name => {
@@ -64,15 +133,15 @@ const allAnnouncements = await getCollection('announcements');
 	const data = {
 		language: {
 			vars: ['Python', 'SQL', 'Bash', 'Javascript', 'Java'],
-			vals: [5, 5, 4, 4, 2]
+			vals: [6, 5, 4.5, 4, 2]
 		},
 		frontend: {
-			vars: [ 'Echarts.js', 'TailwindCSS', 'Dash', 'Streamlit','Astro', 'Alpine.js', 'Grid.js', 'Lodash.js', 'Svelte'],
-			vals: [4, 4, 4, 4, 3, 3, 3, 3, 1]
+			vars: [ 'Dash', 'Streamlit', 'TailwindCSS', 'Echarts.js', 'Astro', 'Alpine.js', 'Grid.js', 'Lodash.js', 'Svelte'],
+			vals: [5, 4.5, 4.2, 4, 3.5, 3, 3, 3, 1]
 		},
 		backend: {
 			vars: ['PySpark', 'Airflow', 'Kafka', 'Postgres', 'Flink*', 'Strawberry', 'Flask', 'FastAPI'],
-			vals: [5, 5, 4, 4, 3, 3, 3, 3].map(x => x + 4)
+			vals: [6, 6, 5, 4.5, 3, 3, 3, 3].map(x => x + 4)
 		},
 		other: {
 			vars: ['Cloudera', 'Posit', 'Github', 'AWS', 'Jira','Asana'],
@@ -104,14 +173,14 @@ const allAnnouncements = await getCollection('announcements');
 	})
 
 	plotNames.forEach(name => {
-		
+	
 		let tmpOption = {};
 
 		if (name == 'treemap') {
 
 			tmpOption = {
 				title: { 
-					text: 'Background',
+					text: 'Experience',
 					textStyle: {
 						color: '#ffffff'
 					}
@@ -133,6 +202,127 @@ const allAnnouncements = await getCollection('announcements');
 				]
 			};
 
+		} else if (name === 'pie') {
+	
+			tmpOption = {
+				title: { 
+					text: 'Content Tags',
+					textStyle: {
+						color: '#ffffff'
+					}
+				},
+				series: [
+					{
+						type: 'pie',
+						data: tagData,
+						radius: ['50%', '80%'],
+						label: {
+							show: false,
+							position: 'center'
+						},
+						labelLine: {
+							show: false
+						},
+						emphasis: {
+							label: {
+								show: true,
+								fontSize: 18,
+								color: '#ffffff',
+							}
+						},
+						itemStyle: {
+							borderColor: 'rgb(15,23,42)',
+							borderWidth: 0.5,
+							
+						},
+						color: [
+							'#FBBF77'
+						]
+					}
+				],
+				grid: {
+					left: 0,
+					right: 0,
+					bottom: 0,
+					top: 0
+				}
+			};
+			
+
+		} else if (name === 'posts') {
+
+			let plotDates = JSON.parse(document.getElementById('postDates').innerText);
+			
+			tmpOption = {
+				title: { 
+					text: name.charAt(0).toLocaleUpperCase() + name.slice(1),
+					textStyle: {
+						color: '#ffffff'
+					}
+				},
+				tooltip: {
+					trigger: 'axis'
+				},
+				xAxis: [
+					{
+						type: 'category',
+						boundaryGap: false,
+						inverse: true,
+						axisLabel: {
+							textStyle: {
+								color: '#ffffff'
+							}
+						}
+					}
+				],
+				yAxis: [
+					{
+						type: 'value',
+						show: false,
+						splitLine: {
+							show: false
+						}
+					}
+				],
+				series: [
+					{
+					name: 'Posts',
+					type: 'line',
+					stack: 'Total',
+					smooth: true,
+					lineStyle: {
+						width: 0
+					},
+					showSymbol: false,
+					areaStyle: {
+						opacity: 0.8,
+						color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+						{
+							offset: 0,
+							color: 'rgb(255,247,237)'
+						},
+						{
+							offset: 1,
+							color: 'rgb(253,186,116)'
+						}
+						])
+					},
+					emphasis: {
+						focus: 'series'
+					},
+					
+					data: Object.keys(plotDates).map(d => {
+						return [d, plotDates[d]]
+					})
+					}
+				],
+				grid: {
+					left: 40,
+					right: 0,
+					bottom: 20,
+					top: 40
+				}
+			}
 
 		} else {
 
@@ -154,7 +344,6 @@ const allAnnouncements = await getCollection('announcements');
 					{ offset: 1, color: 'rgb(191,219,254)' }
 				])
 			}
-			
 			
 			tmpOption = {
 				title: { 
@@ -208,12 +397,9 @@ const allAnnouncements = await getCollection('announcements');
 				}
 			};
 		}
-
+		
 		plots[name].chart.setOption(tmpOption);
 	})
 	
-
-
-
 </script>
 

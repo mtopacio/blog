@@ -5,7 +5,7 @@ description: ""
 date: 2023-07-04T08:56:55.425Z
 preview: ""
 draft: false
-tags: ["Astro", "Svelte"]
+tags: ['Astro', 'Vercel']
 categories: []
 img:
     url: /maxime-horlaville-CSWllKT9wPw-unsplash-cropped.jpg

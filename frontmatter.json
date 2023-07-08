@@ -7,6 +7,12 @@
       "previewPath": null,
       "fields": [
         {
+          "title": "Layout",
+          "name": "layout",
+          "type": "string",
+          "default": "../../layouts/PostLayout.astro"
+        },
+        {
           "title": "Title",
           "name": "title",
           "type": "string"
@@ -15,6 +21,12 @@
           "title": "Description",
           "name": "description",
           "type": "string"
+        },
+        {
+          "title": "Create date",
+          "name": "date",
+          "type": "datetime",
+          "default": "{{now}}",
         },
         {
           "title": "Publishing date",
@@ -45,7 +57,7 @@
         },
         {
           "title": "Content preview",
-          "name": "heroImage",
+          "name": "img",
           "type": "image",
           "isPreviewImage": true
         }
@@ -54,5 +66,7 @@
   ],
   "frontMatter.framework.id": "astro",
   "frontMatter.content.publicFolder": "public",
-  "frontMatter.preview.host": "http://localhost:3000"
+  "frontMatter.preview.host": "http://localhost:3000",
+  "frontMatter.content.placeholders": [
+  ]
 }

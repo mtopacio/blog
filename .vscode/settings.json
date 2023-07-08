@@ -2,7 +2,7 @@
     "frontMatter.content.pageFolders": [
         {
             "title": "posts",
-            "path": "[[workspace]]/blog/src/pages/posts"
+            "path": "[[workspace]]/blog/src/content/posts"
         }
     ],
     "frontMatter.dashboard.openOnStart": false
